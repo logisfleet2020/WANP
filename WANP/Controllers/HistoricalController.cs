@@ -35,6 +35,7 @@ namespace WANP.Controllers
 
             try
             {
+                var requestedCarPlate = model.CarPlateNo;
                 var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
                 //client.AddDefaultParameter("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
 
@@ -43,7 +44,12 @@ namespace WANP.Controllers
 
                 var usersResult = await client.GetAsync<List<UsersResponseModel>>(userIdCarPlateRequest);
 
-                var request = new RestRequest("/252/users/1250/tracks?Date=2020-10-20");
+                var carPlateMatch = usersResult.Where(user => user.name == requestedCarPlate);
+
+                var idToRequest = carPlateMatch.ToList()[0].id;
+
+
+                var request = new RestRequest("/252/users/"+idToRequest+"/tracks?Date=2020-10-20");
                 request.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
 
                 var result = await client.GetAsync<List<TrackModel>>(request);
