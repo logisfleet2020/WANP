@@ -5,6 +5,9 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using WANP.Models;
+using RestSharp;
+using RestSharp.Authenticators;
+using System.Threading.Tasks;
 
 namespace WANP.Controllers
 {
@@ -27,7 +30,22 @@ namespace WANP.Controllers
 
 
         [Route("api/Historical")]
-        public IHttpActionResult Get([FromBody] RequestModel model){
+        public async Task<IHttpActionResult> GetAsync([FromBody] RequestModel model){
+
+            try
+            {
+                var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
+                //client.AddDefaultParameter("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+
+                var request = new RestRequest("/252/users/1250/tracks?Date=2020-10-20");
+                request.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+
+                var result = await client.GetAsync<List<TrackModel>>(request);
+            }catch(Exception e)
+            {
+                Console.Write(e);
+            }
+
             var test = model.CarPlateNo;
             return Json(test);
         }
