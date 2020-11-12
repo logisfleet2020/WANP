@@ -61,6 +61,8 @@ namespace WANP.Controllers
 
                          tracksResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
 
+                        var newList = tracksResult.Select(track => { track.utc = track.utc.ToLocalTime(); return track; }).ToList();
+                         return Json(newList);
                     }
                 }
                 else
@@ -77,6 +79,12 @@ namespace WANP.Controllers
 
                      secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
 
+                    firstResult.AddRange(secondResult);
+
+                    return Json(firstResult);
+
+                    
+
                 }
 
                 /*
@@ -90,8 +98,9 @@ namespace WANP.Controllers
                 Console.Write(e);
             }
 
-            var test = model.CarPlateNo;
-            return Json(test);
+            return Json("nothing");
+            //var test = model.CarPlateNo;
+            //return Json(test);
         }
         
 
