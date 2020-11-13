@@ -37,6 +37,17 @@ namespace WANP.Controllers
             return formattedStr;
         }
 
+        public void transformToResponse(List<TrackModel> originalTracks, List<ResponseTrackModel> responseTracks,string requestedCarPlate)
+        {
+            for (int i = 0; i < originalTracks.Count; i++)
+            {
+                responseTracks.Add(new ResponseTrackModel { CarPlateNo = requestedCarPlate, TimeStamp = formatUTCDate(originalTracks[i].utc), Latitude = originalTracks[i].position.latitude, Longitude = originalTracks[i].position.longitude });
+            }
+
+            
+
+        }
+
 
         [Route("api/Historical")]
         public async Task<IHttpActionResult> GetAsync([FromBody] RequestModel model){
@@ -73,10 +84,14 @@ namespace WANP.Controllers
 
                             tracksResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
 
+                            transformToResponse(tracksResult, formattedResponse, model.CarPlateNo);
+
+                            /*
                             for (int i = 0; i < tracksResult.Count; i++)
                             {
                                 formattedResponse.Add(new ResponseTrackModel { CarPlateNo = model.CarPlateNo, TimeStamp = formatUTCDate(tracksResult[i].utc), Latitude = tracksResult[i].position.latitude, Longitude = tracksResult[i].position.longitude });
                             }
+                            */
 
                             //var newList = tracksResult.Select(track => { track.utc = formatUTCDate(track.utc); return track; }).ToList();
                             return Json(formattedResponse);
@@ -104,12 +119,7 @@ namespace WANP.Controllers
 
                     }
 
-                    /*
-                    var request = new RestRequest("/252/users/"+idToRequest+"/tracks?Date=2020-10-20");
-                    request.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
-
-                    var result = await client.GetAsync<List<TrackModel>>(request);
-                    */
+                   
                     //end try here. 
                 }
                 else
