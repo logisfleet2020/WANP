@@ -43,9 +43,6 @@ namespace WANP.Controllers
             {
                 responseTracks.Add(new ResponseTrackModel { CarPlateNo = requestedCarPlate, TimeStamp = formatUTCDate(originalTracks[i].utc), Latitude = originalTracks[i].position.latitude, Longitude = originalTracks[i].position.longitude });
             }
-
-            
-
         }
 
 
@@ -59,6 +56,9 @@ namespace WANP.Controllers
                 var formattedResponse = new List<ResponseTrackModel>();
                 var firstResult = new List<TrackModel>();
                 var secondResult = new List<TrackModel>();
+                var formattedResponseDayOne = new List<ResponseTrackModel>();
+                var formattedResponseDayTwo = new List<ResponseTrackModel>();
+               
 
                 var requestedCarPlate = model.CarPlateNo;
                 var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
@@ -86,14 +86,6 @@ namespace WANP.Controllers
 
                             transformToResponse(tracksResult, formattedResponse, model.CarPlateNo);
 
-                            /*
-                            for (int i = 0; i < tracksResult.Count; i++)
-                            {
-                                formattedResponse.Add(new ResponseTrackModel { CarPlateNo = model.CarPlateNo, TimeStamp = formatUTCDate(tracksResult[i].utc), Latitude = tracksResult[i].position.latitude, Longitude = tracksResult[i].position.longitude });
-                            }
-                            */
-
-                            //var newList = tracksResult.Select(track => { track.utc = formatUTCDate(track.utc); return track; }).ToList();
                             return Json(formattedResponse);
                         }
                     }
@@ -104,19 +96,18 @@ namespace WANP.Controllers
 
                         firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
 
-
+                        transformToResponse(firstResult, formattedResponseDayOne, model.CarPlateNo);
 
                         var secondRequest = new RestRequest("/252/users/" + idToRequest + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
                         secondRequest.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
 
                         secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
 
-                        firstResult.AddRange(secondResult);
+                        transformToResponse(secondResult, formattedResponseDayTwo, model.CarPlateNo);
 
-                        return Json(firstResult);
+                        formattedResponseDayOne.AddRange(formattedResponseDayTwo);
 
-
-
+                        return Json(formattedResponseDayOne);
                     }
 
                    
