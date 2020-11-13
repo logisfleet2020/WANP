@@ -95,6 +95,7 @@
     <Compile Include="Models\Position.cs" />
     <Compile Include="Models\RequestModel.cs" />
     <Compile Include="Models\ResponseModel.cs" />
+    <Compile Include="Models\ResponseTrackModel.cs" />
     <Compile Include="Models\TrackModel.cs" />
     <Compile Include="Models\UsersResponseModel.cs" />
     <Compile Include="Models\Variables.cs" />
