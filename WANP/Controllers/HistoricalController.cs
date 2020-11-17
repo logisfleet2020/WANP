@@ -37,6 +37,7 @@ namespace WANP.Controllers
             return formattedStr;
         }
 
+        
         public void transformToResponse(List<TrackModel> originalTracks, List<ResponseTrackModel> responseTracks,string requestedCarPlate)
         {
             for (int i = 0; i < originalTracks.Count; i++)
@@ -48,7 +49,6 @@ namespace WANP.Controllers
 
         [Route("api/Historical")]
         public async Task<IHttpActionResult> GetAsync([FromBody] RequestModel model){
-
             try
             {
 
@@ -126,10 +126,61 @@ namespace WANP.Controllers
             //var test = model.CarPlateNo;
             //return Json(test);
         }
-        
 
-        // POST api/<controller>
-        public void Post([FromBody] string value)
+
+        [Route("api/HistoricalAlt")]
+        public async Task<IHttpActionResult> GetAsyncAlt([FromBody] RequestModelA model)
+        {
+           var trackModelResult = new List<TrackModel>();
+           var formattedResponse = new List<ResponseTrackModel>();
+            //var allResponses = new List<ResponseTrackModel>();
+
+
+            try
+            {
+                var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
+                // if inside the JSON request body, there isn't a property call carplate no at all. 
+                if (model.CarPlateNo == null)
+                {
+                    var AllUsersRequest = new RestRequest("259/users");
+                    AllUsersRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                    var usersResult = await client.GetAsync<List<UsersResponseModel>>(AllUsersRequest);
+
+                    var usersWithDevices = usersResult.Where(user => user.devices.Count != 0).ToList();
+
+                    if (model.FromDate == model.ToDate)
+                    {
+                        if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                        {
+                            //loop through all the ID to get the tracks
+                            for (int j = 0; j < usersWithDevices.Count; j++ ) {
+
+                                var requestWithAllParameters = new RestRequest("/259/users/" + usersWithDevices[j].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                                requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+
+                                trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
+                                //assume that the list will be poupulated with the data of every vehicle. 
+                                transformToResponse(trackModelResult, formattedResponse, usersWithDevices[j].name);
+                              
+                            }
+
+                        }
+                    }
+
+                    return Json(formattedResponse);
+                }
+                
+            }
+            catch(Exception e)
+            {
+
+            }
+            return Json("nothing");
+        }
+
+
+            // POST api/<controller>
+            public void Post([FromBody] string value)
         {
         }
 

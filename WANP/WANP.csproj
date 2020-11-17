@@ -92,8 +92,10 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DevicesModel.cs" />
     <Compile Include="Models\Position.cs" />
     <Compile Include="Models\RequestModel.cs" />
+    <Compile Include="Models\RequestModelA.cs" />
     <Compile Include="Models\ResponseModel.cs" />
     <Compile Include="Models\ResponseTrackModel.cs" />
     <Compile Include="Models\TrackModel.cs" />
