@@ -63,8 +63,8 @@ namespace WANP.Controllers
                 var requestedCarPlate = model.CarPlateNo;
                 var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
 
-                var userIdCarPlateRequest = new RestRequest("252/users");
-                userIdCarPlateRequest.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+                var userIdCarPlateRequest = new RestRequest("259/users");
+                userIdCarPlateRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
 
                 var usersResult = await client.GetAsync<List<UsersResponseModel>>(userIdCarPlateRequest);
 
@@ -79,8 +79,8 @@ namespace WANP.Controllers
                     {
                         if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
                         {
-                            var requestWithAllParameters = new RestRequest("/252/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
-                            requestWithAllParameters.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+                            var requestWithAllParameters = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                            requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
 
                             tracksResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
 
@@ -91,15 +91,15 @@ namespace WANP.Controllers
                     }
                     else
                     {
-                        var firstRequest = new RestRequest("/252/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
-                        firstRequest.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+                        var firstRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                        firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
 
                         firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
 
                         transformToResponse(firstResult, formattedResponseDayOne, model.CarPlateNo);
 
-                        var secondRequest = new RestRequest("/252/users/" + idToRequest + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
-                        secondRequest.AddHeader("Authorization", "YhH6C5FlWp0EYlcKXCcQdzCBmaEUxoXf8AFLfEI%2fh2zu7DE%2biS%2f42L4j25Gc43H%2b");
+                        var secondRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                        secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
 
                         secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
 
