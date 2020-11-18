@@ -131,6 +131,8 @@ namespace WANP.Controllers
         [Route("api/HistoricalAlt")]
         public async Task<IHttpActionResult> GetAsyncAlt([FromBody] RequestModelA model)
         {
+
+            var listOfVehiclesToRequest = new List<MatchVehicleModel>(); 
            var trackModelResult = new List<TrackModel>();
            var formattedResponse = new List<ResponseTrackModel>();
             //var allResponses = new List<ResponseTrackModel>();
@@ -167,6 +169,34 @@ namespace WANP.Controllers
                         }
                     }
 
+                    return Json(formattedResponse);
+                    //if inside the request body there is a property called carplate no.
+                }else if(model.CarPlateNo != null)
+                {
+                    for (int j = 0; j < model.CarPlateNo.Length; j++)
+                    {
+                        var AllUsersRequest = new RestRequest("259/users");
+                        AllUsersRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                        var usersResult = await client.GetAsync<List<UsersResponseModel>>(AllUsersRequest);
+
+                        var carPlatesMatch = usersResult.Where(user => user.name == model.CarPlateNo[j]);
+                        if(carPlatesMatch.Count() == 1)
+                        {
+                            listOfVehiclesToRequest.Add(new MatchVehicleModel { id = carPlatesMatch.ToList()[0].id, name = carPlatesMatch.ToList()[0].name });
+                        }
+
+                    }
+                    if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                    {
+
+                        for (int k = 0; k < listOfVehiclesToRequest.Count; k++)
+                        {
+                            var requestWithAllParameters = new RestRequest("/259/users/" + listOfVehiclesToRequest[k].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                            requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                            trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
+                            transformToResponse(trackModelResult, formattedResponse, listOfVehiclesToRequest[k].name);
+                        }
+                    }
                     return Json(formattedResponse);
                 }
                 
