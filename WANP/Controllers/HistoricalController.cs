@@ -10,6 +10,7 @@ using RestSharp.Authenticators;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Web.Configuration;
+using WANP.Constatns;
 
 namespace WANP.Controllers
 {
@@ -29,6 +30,8 @@ namespace WANP.Controllers
         {
             return "value";
         }
+
+        Constants constantValues = new Constants();
 
         public string formatUTCDate(DateTime dateFromDb)
         {
@@ -142,12 +145,12 @@ namespace WANP.Controllers
 
             try
             {
-                var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
+                var client = new RestClient(constantValues.GgateBaseURL);
                 // if inside the JSON request body, there isn't a property call carplate no at all. 
                 if (model.CarPlateNo == null)
                 {
-                    var AllUsersRequest = new RestRequest("259/users");
-                    AllUsersRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                    var AllUsersRequest = new RestRequest(constantValues.AppId+"/users");
+                    AllUsersRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                     var usersResult = await client.GetAsync<List<UsersResponseModel>>(AllUsersRequest);
 
                     var usersWithDevices = usersResult.Where(user => user.devices.Count != 0).ToList();
@@ -161,8 +164,8 @@ namespace WANP.Controllers
                             for (int j = 0; j < usersWithDevices.Count; j++)
                             {
 
-                                var requestWithAllParameters = new RestRequest("/259/users/" + usersWithDevices[j].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
-                                requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var requestWithAllParameters = new RestRequest("/"+constantValues.AppId+"/users/" + usersWithDevices[j].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                                requestWithAllParameters.AddHeader("Authorization", constantValues.AuthorisationToken);
 
                                 trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
                                 //assume that the list will be poupulated with the data of every vehicle. 
@@ -179,13 +182,13 @@ namespace WANP.Controllers
                         {
                             for(int l = 0;l < usersWithDevices.Count; l++)
                             {
-                                var firstRequest = new RestRequest("/259/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
-                                firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var firstRequest = new RestRequest("/"+constantValues.AppId+"/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                                firstRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                                 firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
                                 transformToResponse(firstResult, formattedResponseDayOne, usersWithDevices[l].name);
 
-                                var secondRequest = new RestRequest("/259/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
-                                secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var secondRequest = new RestRequest("/"+constantValues.AppId+"/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                                secondRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                                 secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
                                 transformToResponse(secondResult, formattedResponseDayTwo, usersWithDevices[l].name);
                             }
@@ -200,8 +203,8 @@ namespace WANP.Controllers
                 {
                     for (int j = 0; j < model.CarPlateNo.Length; j++)
                     {
-                        var AllUsersRequest = new RestRequest("259/users");
-                        AllUsersRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                        var AllUsersRequest = new RestRequest(constantValues.AppId+"/users");
+                        AllUsersRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                         var usersResult = await client.GetAsync<List<UsersResponseModel>>(AllUsersRequest);
 
                         var carPlatesMatch = usersResult.Where(user => user.name == model.CarPlateNo[j]);
@@ -219,8 +222,8 @@ namespace WANP.Controllers
 
                             for (int k = 0; k < listOfVehiclesToRequest.Count; k++)
                             {
-                                var requestWithAllParameters = new RestRequest("/259/users/" + listOfVehiclesToRequest[k].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
-                                requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var requestWithAllParameters = new RestRequest("/"+constantValues.AppId+"/users/" + listOfVehiclesToRequest[k].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                                requestWithAllParameters.AddHeader("Authorization", constantValues.AuthorisationToken);
                                 trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
                                 transformToResponse(trackModelResult, formattedResponse, listOfVehiclesToRequest[k].name);
                             }
@@ -233,13 +236,13 @@ namespace WANP.Controllers
                         {
                             for(int l = 0; l < listOfVehiclesToRequest.Count; l++)
                             {
-                                var firstRequest = new RestRequest("/259/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
-                                firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var firstRequest = new RestRequest("/"+constantValues.AppId+"/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                                firstRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                                 firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
                                 transformToResponse(firstResult, formattedResponseDayOne, listOfVehiclesToRequest[l].name);
 
-                                var secondRequest = new RestRequest("/259/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
-                                secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                var secondRequest = new RestRequest("/"+constantValues.AppId+"/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                                secondRequest.AddHeader("Authorization", constantValues.AuthorisationToken);
                                 secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
                                 transformToResponse(secondResult, formattedResponseDayTwo, listOfVehiclesToRequest[l].name);
                             }
