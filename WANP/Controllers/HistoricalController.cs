@@ -224,14 +224,32 @@ namespace WANP.Controllers
                                 trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
                                 transformToResponse(trackModelResult, formattedResponse, listOfVehiclesToRequest[k].name);
                             }
+                            return Json(formattedResponse);
                         }//end if
                     //else if start date and end date are different. 
                     }else if (model.FromDate != model.ToDate)
                     {
+                        if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                        {
+                            for(int l = 0; l < listOfVehiclesToRequest.Count; l++)
+                            {
+                                var firstRequest = new RestRequest("/259/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                                firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
+                                transformToResponse(firstResult, formattedResponseDayOne, listOfVehiclesToRequest[l].name);
 
+                                var secondRequest = new RestRequest("/259/users/" + listOfVehiclesToRequest[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                                secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
+                                transformToResponse(secondResult, formattedResponseDayTwo, listOfVehiclesToRequest[l].name);
+                            }
+
+                            formattedResponseDayOne.AddRange(formattedResponseDayTwo);
+                            return Json(formattedResponseDayOne);
+                        }
                     }
 
-                    return Json(formattedResponse);
+                   
                 }
                 
             }
