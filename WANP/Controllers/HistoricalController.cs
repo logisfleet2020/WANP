@@ -132,11 +132,13 @@ namespace WANP.Controllers
         public async Task<IHttpActionResult> GetAsyncAlt([FromBody] RequestModelA model)
         {
 
-            var listOfVehiclesToRequest = new List<MatchVehicleModel>(); 
+           var listOfVehiclesToRequest = new List<MatchVehicleModel>(); 
            var trackModelResult = new List<TrackModel>();
            var formattedResponse = new List<ResponseTrackModel>();
-            //var allResponses = new List<ResponseTrackModel>();
-
+           var firstResult = new List<TrackModel>();
+            var secondResult = new List<TrackModel>();
+            var formattedResponseDayOne = new List<ResponseTrackModel>();
+            var formattedResponseDayTwo = new List<ResponseTrackModel>();
 
             try
             {
@@ -150,12 +152,14 @@ namespace WANP.Controllers
 
                     var usersWithDevices = usersResult.Where(user => user.devices.Count != 0).ToList();
 
+                    //if the start date and end date is the same. 
                     if (model.FromDate == model.ToDate)
                     {
                         if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
                         {
                             //loop through all the ID to get the tracks
-                            for (int j = 0; j < usersWithDevices.Count; j++ ) {
+                            for (int j = 0; j < usersWithDevices.Count; j++)
+                            {
 
                                 var requestWithAllParameters = new RestRequest("/259/users/" + usersWithDevices[j].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
                                 requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
@@ -163,14 +167,35 @@ namespace WANP.Controllers
                                 trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
                                 //assume that the list will be poupulated with the data of every vehicle. 
                                 transformToResponse(trackModelResult, formattedResponse, usersWithDevices[j].name);
-                              
-                            }
 
+                            }
+                            return Json(formattedResponse);
                         }
                     }
+                    //else if start date and end date are different. 
+                    else if (model.FromDate != model.ToDate)
+                    {
+                        if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                        {
+                            for(int l = 0;l < usersWithDevices.Count; l++)
+                            {
+                                var firstRequest = new RestRequest("/259/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                                firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
+                                transformToResponse(firstResult, formattedResponseDayOne, usersWithDevices[l].name);
 
-                    return Json(formattedResponse);
-                    //if inside the request body there is a property called carplate no.
+                                var secondRequest = new RestRequest("/259/users/" + usersWithDevices[l].id + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                                secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
+                                transformToResponse(secondResult, formattedResponseDayTwo, usersWithDevices[l].name);
+                            }
+                            formattedResponseDayOne.AddRange(formattedResponseDayTwo);
+                            return Json(formattedResponseDayOne);
+                        }
+
+                    }
+                   
+                //if inside the request body there is a property called carplate no.
                 }else if(model.CarPlateNo != null)
                 {
                     for (int j = 0; j < model.CarPlateNo.Length; j++)
@@ -186,26 +211,35 @@ namespace WANP.Controllers
                         }
 
                     }
-                    if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                    // if request start date and end date is the same date. 
+                    if (model.FromDate == model.ToDate)
+                    {
+                        if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                        {
+
+                            for (int k = 0; k < listOfVehiclesToRequest.Count; k++)
+                            {
+                                var requestWithAllParameters = new RestRequest("/259/users/" + listOfVehiclesToRequest[k].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                                requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+                                trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
+                                transformToResponse(trackModelResult, formattedResponse, listOfVehiclesToRequest[k].name);
+                            }
+                        }//end if
+                    //else if start date and end date are different. 
+                    }else if (model.FromDate != model.ToDate)
                     {
 
-                        for (int k = 0; k < listOfVehiclesToRequest.Count; k++)
-                        {
-                            var requestWithAllParameters = new RestRequest("/259/users/" + listOfVehiclesToRequest[k].id + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
-                            requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
-                            trackModelResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
-                            transformToResponse(trackModelResult, formattedResponse, listOfVehiclesToRequest[k].name);
-                        }
                     }
+
                     return Json(formattedResponse);
                 }
                 
             }
             catch(Exception e)
             {
-
+                return Json("Internal System Error");
             }
-            return Json("nothing");
+            return Json("Internal Error");
         }
 
 
