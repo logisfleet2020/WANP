@@ -50,85 +50,7 @@ namespace WANP.Controllers
         }
 
 
-        [Route("api/Historical")]
-        public async Task<IHttpActionResult> GetAsync([FromBody] RequestModel model){
-            try
-            {
-
-                var tracksResult = new List<TrackModel>();
-                var formattedResponse = new List<ResponseTrackModel>();
-                var firstResult = new List<TrackModel>();
-                var secondResult = new List<TrackModel>();
-                var formattedResponseDayOne = new List<ResponseTrackModel>();
-                var formattedResponseDayTwo = new List<ResponseTrackModel>();
-               
-
-                var requestedCarPlate = model.CarPlateNo;
-                var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
-
-                var userIdCarPlateRequest = new RestRequest("259/users");
-                userIdCarPlateRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
-
-                var usersResult = await client.GetAsync<List<UsersResponseModel>>(userIdCarPlateRequest);
-
-                var carPlateMatch = usersResult.Where(user => user.name == requestedCarPlate);
-
-                if (carPlateMatch.Count() == 1)
-                {
-
-                    var idToRequest = carPlateMatch.ToList()[0].id;
-
-                    if (model.FromDate == model.ToDate)
-                    {
-                        if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
-                        {
-                            var requestWithAllParameters = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
-                            requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
-
-                            tracksResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
-
-                            transformToResponse(tracksResult, formattedResponse, model.CarPlateNo);
-
-                            return Json(formattedResponse);
-                        }
-                    }
-                    else
-                    {
-                        var firstRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
-                        firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
-
-                        firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
-
-                        transformToResponse(firstResult, formattedResponseDayOne, model.CarPlateNo);
-
-                        var secondRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
-                        secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
-
-                        secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
-
-                        transformToResponse(secondResult, formattedResponseDayTwo, model.CarPlateNo);
-
-                        formattedResponseDayOne.AddRange(formattedResponseDayTwo);
-
-                        return Json(formattedResponseDayOne);
-                    }
-
-                   
-                    //end try here. 
-                }
-                else
-                {
-                    return Json("Not a valid car plate");
-                }
-            }catch(Exception e)
-            {
-                Console.Write(e);
-            }
-
-            return Json("nothing");
-            //var test = model.CarPlateNo;
-            //return Json(test);
-        }
+       
 
 
         [Route("api/HistoricalAlt")]
@@ -264,8 +186,91 @@ namespace WANP.Controllers
         }
 
 
-            // POST api/<controller>
-            public void Post([FromBody] string value)
+
+        /*
+       [Route("api/Historical")]
+       public async Task<IHttpActionResult> GetAsync([FromBody] RequestModel model){
+           try
+           {
+
+               var tracksResult = new List<TrackModel>();
+               var formattedResponse = new List<ResponseTrackModel>();
+               var firstResult = new List<TrackModel>();
+               var secondResult = new List<TrackModel>();
+               var formattedResponseDayOne = new List<ResponseTrackModel>();
+               var formattedResponseDayTwo = new List<ResponseTrackModel>();
+
+
+               var requestedCarPlate = model.CarPlateNo;
+               var client = new RestClient("https://fms.logisfleet.com/comGpsGate/api/v.1/applications");
+
+               var userIdCarPlateRequest = new RestRequest("259/users");
+               userIdCarPlateRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+
+               var usersResult = await client.GetAsync<List<UsersResponseModel>>(userIdCarPlateRequest);
+
+               var carPlateMatch = usersResult.Where(user => user.name == requestedCarPlate);
+
+               if (carPlateMatch.Count() == 1)
+               {
+
+                   var idToRequest = carPlateMatch.ToList()[0].id;
+
+                   if (model.FromDate == model.ToDate)
+                   {
+                       if (model.FromTime != null && model.ToDate != null && model.ToTime != null)
+                       {
+                           var requestWithAllParameters = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=" + model.ToTime);
+                           requestWithAllParameters.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+
+                           tracksResult = await client.GetAsync<List<TrackModel>>(requestWithAllParameters);
+
+                           transformToResponse(tracksResult, formattedResponse, model.CarPlateNo);
+
+                           return Json(formattedResponse);
+                       }
+                   }
+                   else
+                   {
+                       var firstRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.FromDate + "&From=" + model.FromTime + "&Until=23:59:59");
+                       firstRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+
+                       firstResult = await client.GetAsync<List<TrackModel>>(firstRequest);
+
+                       transformToResponse(firstResult, formattedResponseDayOne, model.CarPlateNo);
+
+                       var secondRequest = new RestRequest("/259/users/" + idToRequest + "/tracks?Date=" + model.ToDate + "&From=00:00:00&Until=" + model.ToTime);
+                       secondRequest.AddHeader("Authorization", "cwdGQXZ1Zg7S8ixv0JLfVPh0BDizIqCm0Whv0uOwAHiGUEZRvTremuXMfqCsEj6atW2GrgdkyOJCJJmCxGCAiQ%3d%3d");
+
+                       secondResult = await client.GetAsync<List<TrackModel>>(secondRequest);
+
+                       transformToResponse(secondResult, formattedResponseDayTwo, model.CarPlateNo);
+
+                       formattedResponseDayOne.AddRange(formattedResponseDayTwo);
+
+                       return Json(formattedResponseDayOne);
+                   }
+
+
+                   //end try here. 
+               }
+               else
+               {
+                   return Json("Not a valid car plate");
+               }
+           }catch(Exception e)
+           {
+               Console.Write(e);
+           }
+
+           return Json("nothing");
+           //var test = model.CarPlateNo;
+           //return Json(test);
+       }
+       */
+
+        // POST api/<controller>
+        public void Post([FromBody] string value)
         {
         }
 
